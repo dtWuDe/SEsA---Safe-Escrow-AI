@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// ========================
+/// ENUM DEFINITIONS
+/// ========================
+
+enum UserRole {
+  USER
+  ADMIN
+  ARBITRATOR
+}
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum OTPPurpose {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  TWO_FACTOR_AUTH
+}
+
+/// ========================
+/// MODEL DEFINITIONS
+/// ========================
+
+model User {
+  id            String               @id @default(cuid())
+  email         String               @unique
+  passwordHash  String
+  createdAt     DateTime             @default(now())
+  isVerified    Boolean              @default(false)
+  updatedAt     DateTime             @updatedAt
+  status        UserStatus           @default(ACTIVE) // ACTIVE, SUSPENDED, DELETED
+  role          UserRole             @default(USER) // USER, ADMIN, ARBITRATOR
+  lastLoginAt   DateTime?
+  otps          OTP[]
+  refreshTokens RefreshToken[]
+  resetTokens   ResetPasswordToken[]
+  walletLinks   WalletLink[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiryAt  DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model OTP {
+  id            String   @id @default(cuid())
+  codeHash      String
+  purpose       OTPPurpose
+  userId        String
+  used          Boolean  @default(false)
+  attemptCount  Int      @default(0)
+  createdAt     DateTime @default(now())
+  expiryAt      DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model WalletLink {
+  id            String   @id @default(cuid())
+  walletAddress String   @unique
+  chain         String
+  userId        String
+  verified      Boolean  @default(false)
+  signature     String   // message signature
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ResetPasswordToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  expiryAt  DateTime
+  userReset User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

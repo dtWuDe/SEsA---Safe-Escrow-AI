@@ -1,12 +1,11 @@
-import { genSaltSync, hashSync, compareSync  } from "bcrypt-ts";
+import * as bcrypt from 'bcrypt';
 
-export const Hasher  = {
-    async hashPassword(password: string) {
-        const salt = await genSaltSync(10);
-        return hashSync(password, salt);
-    },
+export class Hasher {
+  async hashPassword(password: string) {
+    return bcrypt.hash(password, 10);
+  }
 
-    async verifyPassword(password: string, hash: string) {
-        return compareSync(password, hash);
-    },
-}
+  async verifyPassword(password: string, hash: string) {
+    return bcrypt.compare(password, hash);
+  }
+};

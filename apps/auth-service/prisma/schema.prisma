@@ -1,6 +1,30 @@
+/// # Authentication Service Schema
+///
+/// This Prisma schema defines the data models for an authentication service with support for:
+/// - User account management with role-based access control
+/// - Email verification and password reset via OTP
+/// - JWT refresh token management
+/// - Wallet address linking and verification
+///
+/// ## Enums
+/// - **UserRole**: Defines user permission levels (USER, ADMIN, ARBITRATOR)
+/// - **UserStatus**: Tracks user account state (ACTIVE, SUSPENDED, DELETED)
+/// - **OTPPurpose**: Specifies OTP usage context (EMAIL_VERIFICATION, PASSWORD_RESET, TWO_FACTOR_AUTH)
+///
+/// ## Models
+/// - **User**: Core user account with email authentication and status tracking
+/// - **RefreshToken**: Secure JWT refresh token storage with revocation support
+/// - **OTP**: One-time password management with expiry and attempt tracking
+/// - **WalletLink**: Blockchain wallet address linking with signature verification
+/// - **ResetPasswordToken**: Password reset token with expiry and single-use enforcement
+///
+/// All token models cascade delete on user removal and include indexed foreign keys for query performance.
+
 generator client {
+  // Required
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output = "../generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
@@ -16,6 +40,7 @@ enum UserRole {
   ADMIN
   ARBITRATOR
 }
+
 enum UserStatus {
   ACTIVE
   SUSPENDED

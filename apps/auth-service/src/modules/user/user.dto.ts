@@ -1,13 +1,15 @@
 import { z } from 'zod';
 
-export const UserIdDto = z.cuid();
+export const userIdDto = z.cuid();
 
-export const CreateUserDto = z.object({
+export const emailDto = z.email();
+
+export const createUserDto = z.object({
     email: z.email(),
     password: z.string().min(8).max(128),
 });
 
-export const ChangePasswordDto = z.object({
+export const changePasswordDto = z.object({
     password: z.string().min(8).max(128),
 });
 

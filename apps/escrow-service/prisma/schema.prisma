@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EscrowStatus {
+  INIT
+  AWAITING_FUNDING
+  AWAITING_RELEASE
+  RELEASED
+  REFUNDED
+  DISPUTED
+  CANCELLED
+  EXPIRED             
+}
+
+model Escrow {
+  id            String       @id @default(cuid())
+  
+  // on-chain identity
+  chainId Int
+  contractAddress String
+  escrowIndex BigInt? 
+
+  // participants
+  buyerUserId         String
+  sellerUserId        String
+
+  buyerWallet         String
+  sellerWallet        String
+  arbitratorWallet    String
+  
+  intentHash          String
+  // value
+  amount              BigInt
+
+  // Job hash
+  jobHash             String          @unique
+  escrowStatus        EscrowStatus    @default(AWAITING_RELEASE)
+
+  // tx tracking
+  txCreate            String?
+  txResolve           String?
+  
+  createdAt           DateTime        @default(now())
+  updateAt            DateTime        @updatedAt
+  chainEvent          ChainEvent[]
+  @@unique([chainId, contractAddress, escrowIndex])
+}
+
+
+model ChainEvent {
+  id            String    @id @default(cuid())
+  escrowId      String
+  chainId       Int
+  txHash        String    
+  logIndex      Int
+  eventName     String
+  payload       Json
+
+  processedAt   DateTime  @default(now())
+  escrowChain   Escrow    @relation(fields: [escrowId], references: [id], onDelete: Cascade) 
+  @@unique([chainId, txHash, logIndex])
+}
